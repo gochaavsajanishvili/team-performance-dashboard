@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Intelligence Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #2e7d32;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .alert-bar {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-left: 4px solid #ff5252;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .alert-text {
+            font-size: 14px;
+        }
+
+        .alert-action {
+            padding: 8px 16px;
+            background: #ff5252;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            background: #fff;
+            padding: 0 20px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            color: #1976d2;
+            border-bottom-color: #1976d2;
+        }
+
+        .grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-critical { background: #ffebee; color: #c62828; }
+        .badge-warning { background: #fff3e0; color: #e65100; }
+        .badge-success { background: #e8f5e9; color: #2e7d32; }
+        .badge-info { background: #e3f2fd; color: #1565c0; }
+
+        .metric-large {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .metric-value-large {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .metric-label-large {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-change {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .change-up { background: #e8f5e9; color: #2e7d32; }
+        .change-down { background: #ffebee; color: #c62828; }
+
+        .developer-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .developer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .developer-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .developer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+        }
+
+        .avatar-lead { background: #6366f1; }
+        .avatar-senior { background: #8b5cf6; }
+        .avatar-support { background: #3b82f6; }
+        .avatar-qa { background: #10b981; }
+
+        .developer-details {
+            flex: 1;
+        }
+
+        .developer-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .developer-role {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .developer-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-idle {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-offline {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .developer-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .mini-metric {
+            text-align: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .mini-metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .mini-metric-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .activity-bar {
+            display: flex;
+            gap: 2px;
+            height: 30px;
+            margin: 10px 0;
+        }
+
+        .activity-segment {
+            flex: 1;
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .activity-high { background: #2e7d32; }
+        .activity-medium { background: #66bb6a; }
+        .activity-low { background: #a5d6a7; }
+        .activity-none { background: #f0f0f0; }
+
+        .current-task {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 3px solid #1976d2;
+        }
+
+        .current-task-title {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .current-task-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .task-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #1976d2;
+        }
+
+        .live-feed {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .feed-time {
+            font-size: 11px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .feed-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .feed-commit { background: #e3f2fd; color: #1565c0; }
+        .feed-pr { background: #f3e5f5; color: #7b1fa2; }
+        .feed-review { background: #fff3e0; color: #e65100; }
+        .feed-deploy { background: #e8f5e9; color: #2e7d32; }
+
+        .radar-chart {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .code-quality-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quality-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quality-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .quality-score {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .score-excellent { background: #e8f5e9; color: #2e7d32; }
+        .score-good { background: #e3f2fd; color: #1565c0; }
+        .score-fair { background: #fff3e0; color: #e65100; }
+        .score-poor { background: #ffebee; color: #c62828; }
+
+        .recommendation-box {
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            color: #1565c0;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .recommendation-text {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .action-items {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .action-items li {
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-priority {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff3e0; color: #e65100; }
+        .priority-low { background: #e3f2fd; color: #1565c0; }
+
+        .integration-status {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .integration-item {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .integration-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-connected { background: #4caf50; }
+        .dot-error { background: #f44336; }
+        .dot-syncing { background: #ff9800; animation: pulse 1s infinite; }
+
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2px;
+            margin: 10px 0;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .heat-0 { background: #f0f0f0; }
+        .heat-1 { background: #c8e6c9; }
+        .heat-2 { background: #81c784; }
+        .heat-3 { background: #4caf50; }
+        .heat-4 { background: #2e7d32; }
+    </style>
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedContent = document.getElementById(tabName);
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+            }
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show first tab by default
+            document.getElementById('realtime').style.display = 'block';
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>Team Intelligence Dashboard</h1>
+            <div class="header-stats">
+                <div class="integration-status">
+                    <div class="integration-item">
+                        <span class="integration-dot dot-connected"></span>
+                        <span>Jira Connected</span>
+                    </div>
+                    <div class="integration-item">
+                        <span class="integration-dot dot-connected"></span>
+                        <span>GitHub Active</span>
+                    </div>
+                    <div class="integration-item">
+                        <span class="integration-dot dot-syncing"></span>
+                        <span>AI Processing</span>
+                    </div>
+                </div>
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    <span>Live - Updated 12 seconds ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Critical Alert Bar -->
+        <div class="alert-bar">
+            <div class="alert-content">
+                <div class="alert-icon">!</div>
+                <div>
+                    <div style="font-weight: 600;">ACTION REQUIRED: Sprint 24 at Risk</div>
+                    <div class="alert-text">3 blockers detected. Gocha's API integration delayed by 2 days. John reports 5 critical bugs in payment module.</div>
+                </div>
+            </div>
+            <button class="alert-action">View Details & Assign</button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('realtime')">Real-Time Overview</button>
+            <button class="tab" onclick="showTab('developer')">Developer Analytics</button>
+            <button class="tab" onclick="showTab('project')">Project Health</button>
+            <button class="tab" onclick="showTab('ai')">AI Predictions</button>
+            <button class="tab" onclick="showTab('historical')">Historical Trends</button>
+        </div>
+
+        <!-- Real-Time Overview Tab Content -->
+        <div id="realtime" class="tab-content" style="display: none;">
+
+        <!-- Key Metrics Overview -->
+        <div class="grid grid-4">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Sprint Velocity</span>
+                    <span class="card-badge badge-warning">At Risk</span>
+                </div>
+                <div class="metric-large">
+                    <div class="metric-value-large">47/65</div>
+                    <div class="metric-label-large">Story Points</div>
+                    <span class="metric-change change-down">-18% vs target</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Code Quality</span>
+                    <span class="card-badge badge-success">Improving</span>
+                </div>
+                <div class="metric-large">
+                    <div class="metric-value-large">8.3</div>
+                    <div class="metric-label-large">Quality Score</div>
+                    <span class="metric-change change-up">+0.5 this week</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Team Efficiency</span>
+                    <span class="card-badge badge-info">Stable</span>
+                </div>
+                <div class="metric-large">
+                    <div class="metric-value-large">76%</div>
+                    <div class="metric-label-large">Productive Time</div>
+                    <span class="metric-change change-up">+4% vs last sprint</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Deployment Rate</span>
+                    <span class="card-badge badge-success">On Track</span>
+                </div>
+                <div class="metric-large">
+                    <div class="metric-value-large">3.2/day</div>
+                    <div class="metric-label-large">Avg Deployments</div>
+                    <span class="metric-change change-up">+12% vs avg</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Performance Cards -->
+        <div class="grid grid-3">
+            <!-- Gocha - Development Lead -->
+            <div class="developer-card">
+                <div class="developer-header">
+                    <div class="developer-info">
+                        <div class="developer-avatar avatar-lead">GL</div>
+                        <div class="developer-details">
+                            <div class="developer-name">Gocha</div>
+                            <div class="developer-role">Development Lead</div>
+                        </div>
+                    </div>
+                    <div class="developer-status status-active">
+                        <span class="live-dot"></span> Coding
+                    </div>
+                </div>
+                
+                <div class="developer-metrics">
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">24</div>
+                        <div class="mini-metric-label">Points</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">42</div>
+                        <div class="mini-metric-label">Commits</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">94%</div>
+                        <div class="mini-metric-label">Quality</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">2.1h</div>
+                        <div class="mini-metric-label">Review</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: #666; margin: 10px 0 5px;">ACTIVITY TODAY (9 hours)</div>
+                <div class="activity-bar">
+                    <div class="activity-segment activity-none" title="9:00 - 10:00"></div>
+                    <div class="activity-segment activity-high" title="10:00 - 11:00"></div>
+                    <div class="activity-segment activity-high" title="11:00 - 12:00"></div>
+                    <div class="activity-segment activity-medium" title="12:00 - 13:00"></div>
+                    <div class="activity-segment activity-low" title="13:00 - 14:00"></div>
+                    <div class="activity-segment activity-high" title="14:00 - 15:00"></div>
+                    <div class="activity-segment activity-high" title="15:00 - 16:00"></div>
+                    <div class="activity-segment activity-medium" title="16:00 - 17:00"></div>
+                    <div class="activity-segment activity-high" title="17:00 - 18:00"></div>
+                </div>
+
+                <div class="current-task">
+                    <div class="current-task-title">Current Task</div>
+                    <div class="current-task-name">API-234: Implement payment gateway integration</div>
+                    <div class="task-progress">
+                        <span>Started 3h ago</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%"></div>
+                        </div>
+                        <span>65%</span>
+                    </div>
+                </div>
+
+                <div class="code-quality-grid">
+                    <div class="quality-item">
+                        <span class="quality-label">Code Complexity</span>
+                        <span class="quality-score score-excellent">Low</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Test Coverage</span>
+                        <span class="quality-score score-good">87%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Bug Rate</span>
+                        <span class="quality-score score-excellent">0.8%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Mentoring</span>
+                        <span class="quality-score score-excellent">High</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prince - Senior Developer -->
+            <div class="developer-card">
+                <div class="developer-header">
+                    <div class="developer-info">
+                        <div class="developer-avatar avatar-senior">PS</div>
+                        <div class="developer-details">
+                            <div class="developer-name">Prince</div>
+                            <div class="developer-role">Senior Developer</div>
+                        </div>
+                    </div>
+                    <div class="developer-status status-active">
+                        <span class="live-dot"></span> Review PR
+                    </div>
+                </div>
+                
+                <div class="developer-metrics">
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">18</div>
+                        <div class="mini-metric-label">Points</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">38</div>
+                        <div class="mini-metric-label">Commits</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">91%</div>
+                        <div class="mini-metric-label">Quality</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">1.8h</div>
+                        <div class="mini-metric-label">Review</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: #666; margin: 10px 0 5px;">ACTIVITY TODAY (9 hours)</div>
+                <div class="activity-bar">
+                    <div class="activity-segment activity-high" title="9:00 - 10:00"></div>
+                    <div class="activity-segment activity-high" title="10:00 - 11:00"></div>
+                    <div class="activity-segment activity-medium" title="11:00 - 12:00"></div>
+                    <div class="activity-segment activity-low" title="12:00 - 13:00"></div>
+                    <div class="activity-segment activity-none" title="13:00 - 14:00"></div>
+                    <div class="activity-segment activity-high" title="14:00 - 15:00"></div>
+                    <div class="activity-segment activity-high" title="15:00 - 16:00"></div>
+                    <div class="activity-segment activity-medium" title="16:00 - 17:00"></div>
+                    <div class="activity-segment activity-low" title="17:00 - 18:00"></div>
+                </div>
+
+                <div class="current-task">
+                    <div class="current-task-title">Current Task</div>
+                    <div class="current-task-name">FE-521: Optimize dashboard rendering performance</div>
+                    <div class="task-progress">
+                        <span>Started 1h ago</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 30%"></div>
+                        </div>
+                        <span>30%</span>
+                    </div>
+                </div>
+
+                <div class="code-quality-grid">
+                    <div class="quality-item">
+                        <span class="quality-label">Code Complexity</span>
+                        <span class="quality-score score-good">Medium</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Test Coverage</span>
+                        <span class="quality-score score-good">82%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Bug Rate</span>
+                        <span class="quality-score score-good">1.5%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Refactoring</span>
+                        <span class="quality-score score-excellent">High</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Akash - Support Developer -->
+            <div class="developer-card">
+                <div class="developer-header">
+                    <div class="developer-info">
+                        <div class="developer-avatar avatar-support">AS</div>
+                        <div class="developer-details">
+                            <div class="developer-name">Akash</div>
+                            <div class="developer-role">Support Developer</div>
+                        </div>
+                    </div>
+                    <div class="developer-status status-idle">
+                        <span class="live-dot"></span> Idle 15m
+                    </div>
+                </div>
+                
+                <div class="developer-metrics">
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">8</div>
+                        <div class="mini-metric-label">Points</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">22</div>
+                        <div class="mini-metric-label">Commits</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">78%</div>
+                        <div class="mini-metric-label">Quality</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">3.2h</div>
+                        <div class="mini-metric-label">Review</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: #666; margin: 10px 0 5px;">ACTIVITY TODAY (9 hours)</div>
+                <div class="activity-bar">
+                    <div class="activity-segment activity-medium" title="9:00 - 10:00"></div>
+                    <div class="activity-segment activity-low" title="10:00 - 11:00"></div>
+                    <div class="activity-segment activity-medium" title="11:00 - 12:00"></div>
+                    <div class="activity-segment activity-low" title="12:00 - 13:00"></div>
+                    <div class="activity-segment activity-none" title="13:00 - 14:00"></div>
+                    <div class="activity-segment activity-medium" title="14:00 - 15:00"></div>
+                    <div class="activity-segment activity-low" title="15:00 - 16:00"></div>
+                    <div class="activity-segment activity-none" title="16:00 - 17:00"></div>
+                    <div class="activity-segment activity-none" title="17:00 - 18:00"></div>
+                </div>
+
+                <div class="current-task">
+                    <div class="current-task-title">Current Task</div>
+                    <div class="current-task-name">SUP-892: Fix customer login issues</div>
+                    <div class="task-progress">
+                        <span>Started 45m ago</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                        <span>85%</span>
+                    </div>
+                </div>
+
+                <div class="code-quality-grid">
+                    <div class="quality-item">
+                        <span class="quality-label">Code Complexity</span>
+                        <span class="quality-score score-fair">High</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Test Coverage</span>
+                        <span class="quality-score score-fair">68%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Bug Rate</span>
+                        <span class="quality-score score-fair">3.2%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Learning</span>
+                        <span class="quality-score score-good">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row: Saeed and John -->
+        <div class="grid grid-3">
+            <!-- Saeed - Support Developer -->
+            <div class="developer-card">
+                <div class="developer-header">
+                    <div class="developer-info">
+                        <div class="developer-avatar avatar-support">SS</div>
+                        <div class="developer-details">
+                            <div class="developer-name">Saeed</div>
+                            <div class="developer-role">Support Developer</div>
+                        </div>
+                    </div>
+                    <div class="developer-status status-offline">
+                        <span class="live-dot"></span> Offline
+                    </div>
+                </div>
+                
+                <div class="developer-metrics">
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">6</div>
+                        <div class="mini-metric-label">Points</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">18</div>
+                        <div class="mini-metric-label">Commits</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">75%</div>
+                        <div class="mini-metric-label">Quality</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">4.1h</div>
+                        <div class="mini-metric-label">Review</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: #666; margin: 10px 0 5px;">ACTIVITY TODAY (9 hours)</div>
+                <div class="activity-bar">
+                    <div class="activity-segment activity-low" title="9:00 - 10:00"></div>
+                    <div class="activity-segment activity-medium" title="10:00 - 11:00"></div>
+                    <div class="activity-segment activity-medium" title="11:00 - 12:00"></div>
+                    <div class="activity-segment activity-low" title="12:00 - 13:00"></div>
+                    <div class="activity-segment activity-none" title="13:00 - 14:00"></div>
+                    <div class="activity-segment activity-low" title="14:00 - 15:00"></div>
+                    <div class="activity-segment activity-none" title="15:00 - 16:00"></div>
+                    <div class="activity-segment activity-none" title="16:00 - 17:00"></div>
+                    <div class="activity-segment activity-none" title="17:00 - 18:00"></div>
+                </div>
+
+                <div class="current-task">
+                    <div class="current-task-title">Last Task (2h ago)</div>
+                    <div class="current-task-name">SUP-901: Update documentation for API endpoints</div>
+                    <div class="task-progress">
+                        <span>Completed</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%; background: #4caf50;"></div>
+                        </div>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <div class="code-quality-grid">
+                    <div class="quality-item">
+                        <span class="quality-label">Code Complexity</span>
+                        <span class="quality-score score-fair">High</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Test Coverage</span>
+                        <span class="quality-score score-poor">62%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Bug Rate</span>
+                        <span class="quality-score score-fair">4.1%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Improvement</span>
+                        <span class="quality-score score-good">+15%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- John - QA -->
+            <div class="developer-card">
+                <div class="developer-header">
+                    <div class="developer-info">
+                        <div class="developer-avatar avatar-qa">JQ</div>
+                        <div class="developer-details">
+                            <div class="developer-name">John</div>
+                            <div class="developer-role">Quality Assurance</div>
+                        </div>
+                    </div>
+                    <div class="developer-status status-active">
+                        <span class="live-dot"></span> Testing
+                    </div>
+                </div>
+                
+                <div class="developer-metrics">
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">28</div>
+                        <div class="mini-metric-label">Tests Run</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">12</div>
+                        <div class="mini-metric-label">Bugs Found</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">92%</div>
+                        <div class="mini-metric-label">Coverage</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">1.5h</div>
+                        <div class="mini-metric-label">Avg Test</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: #666; margin: 10px 0 5px;">TESTING ACTIVITY (Last 7 days)</div>
+                <div class="heatmap">
+                    <div class="heatmap-cell heat-2" title="Mon"></div>
+                    <div class="heatmap-cell heat-3" title="Mon"></div>
+                    <div class="heatmap-cell heat-4" title="Mon"></div>
+                    <div class="heatmap-cell heat-2" title="Mon"></div>
+                    <div class="heatmap-cell heat-1" title="Tue"></div>
+                    <div class="heatmap-cell heat-3" title="Tue"></div>
+                    <div class="heatmap-cell heat-4" title="Tue"></div>
+                    <div class="heatmap-cell heat-3" title="Tue"></div>
+                    <div class="heatmap-cell heat-2" title="Wed"></div>
+                    <div class="heatmap-cell heat-2" title="Wed"></div>
+                    <div class="heatmap-cell heat-3" title="Wed"></div>
+                    <div class="heatmap-cell heat-4" title="Wed"></div>
+                    <div class="heatmap-cell heat-4" title="Thu"></div>
+                    <div class="heatmap-cell heat-4" title="Thu"></div>
+                    <div class="heatmap-cell heat-3" title="Thu"></div>
+                    <div class="heatmap-cell heat-2" title="Thu"></div>
+                    <div class="heatmap-cell heat-3" title="Fri"></div>
+                    <div class="heatmap-cell heat-4" title="Fri"></div>
+                    <div class="heatmap-cell heat-4" title="Fri"></div>
+                    <div class="heatmap-cell heat-3" title="Fri"></div>
+                    <div class="heatmap-cell heat-0" title="Sat"></div>
+                    <div class="heatmap-cell heat-0" title="Sat"></div>
+                    <div class="heatmap-cell heat-1" title="Sun"></div>
+                    <div class="heatmap-cell heat-0" title="Sun"></div>
+                </div>
+
+                <div class="current-task">
+                    <div class="current-task-title">Current Focus</div>
+                    <div class="current-task-name">Payment Module - Regression Testing Suite</div>
+                    <div class="task-progress">
+                        <span>5 Critical Bugs</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%; background: #ff5252;"></div>
+                        </div>
+                        <span>40%</span>
+                    </div>
+                </div>
+
+                <div class="code-quality-grid">
+                    <div class="quality-item">
+                        <span class="quality-label">Test Quality</span>
+                        <span class="quality-score score-excellent">High</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Bug Detection</span>
+                        <span class="quality-score score-excellent">95%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">False Positives</span>
+                        <span class="quality-score score-good">2%</span>
+                    </div>
+                    <div class="quality-item">
+                        <span class="quality-label">Automation</span>
+                        <span class="quality-score score-good">78%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Activity Feed -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Live Team Activity</span>
+                    <span class="card-badge badge-info">Real-time</span>
+                </div>
+                <div class="live-feed">
+                    <div class="feed-item">
+                        <span class="feed-icon feed-commit">C</span>
+                        <div style="flex: 1;">
+                            <strong>Gocha</strong> pushed 3 commits to payment-integration
+                            <div class="feed-time">2 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <span class="feed-icon feed-pr">PR</span>
+                        <div style="flex: 1;">
+                            <strong>Prince</strong> opened PR #234: Performance optimization
+                            <div class="feed-time">8 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <span class="feed-icon feed-review">R</span>
+                        <div style="flex: 1;">
+                            <strong>John</strong> reported 5 bugs in payment module
+                            <div class="feed-time">15 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <span class="feed-icon feed-commit">C</span>
+                        <div style="flex: 1;">
+                            <strong>Akash</strong> fixed SUP-892: Login issues resolved
+                            <div class="feed-time">22 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <span class="feed-icon feed-deploy">D</span>
+                        <div style="flex: 1;">
+                            <strong>System</strong> deployed v2.3.1 to staging
+                            <div class="feed-time">45 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <span class="feed-icon feed-review">R</span>
+                        <div style="flex: 1;">
+                            <strong>Gocha</strong> approved Prince's PR with comments
+                            <div class="feed-time">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Predictions and Recommendations -->
+        <div class="grid grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">AI Predictions & Risk Analysis</span>
+                    <span class="card-badge badge-warning">3 Risks</span>
+                </div>
+                
+                <div class="recommendation-box" style="background: #ffebee; border-color: #f44336;">
+                    <div class="recommendation-title">🔴 Critical: Sprint 24 Completion at Risk</div>
+                    <div class="recommendation-text">
+                        Based on current velocity and Gocha's API delays, sprint completion probability: <strong>42%</strong>
+                        <br>Impact: Q2 release deadline may slip by 5-7 days
+                    </div>
+                </div>
+
+                <div class="recommendation-box">
+                    <div class="recommendation-title">⚠️ Developer Burnout Alert: Gocha</div>
+                    <div class="recommendation-text">
+                        42 commits in 3 days, 9+ hour sessions detected. Productivity declining by 15% per day.
+                        Recommend immediate workload redistribution to Prince.
+                    </div>
+                </div>
+
+                <div class="recommendation-box" style="background: #fff3e0; border-color: #ff9800;">
+                    <div class="recommendation-title">📊 Skill Gap Detected: Testing Coverage</div>
+                    <div class="recommendation-text">
+                        Akash and Saeed's test coverage below 70%. John overwhelmed with manual testing.
+                        Predicted bug escape rate: 8% (industry avg: 3%)
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <strong style="font-size: 13px;">Completion Predictions:</strong>
+                    <ul style="list-style: none; margin-top: 10px;">
+                        <li style="padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 13px;">
+                            <strong>Payment Gateway:</strong> 85% likely by Friday (Gocha + Prince collaboration)
+                        </li>
+                        <li style="padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 13px;">
+                            <strong>Performance Optimization:</strong> 95% likely by Thursday (Prince on track)
+                        </li>
+                        <li style="padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 13px;">
+                            <strong>Bug Fixes:</strong> 60% likely by EOW (Akash/Saeed capacity limited)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Actionable Recommendations</span>
+                    <span class="card-badge badge-critical">Immediate Action</span>
+                </div>
+                
+                <ul class="action-items">
+                    <li>
+                        <span class="action-priority priority-high">HIGH</span>
+                        <div style="flex: 1;">
+                            <strong>Reassign 8 story points from Gocha to Prince</strong>
+                            <div style="font-size: 11px; color: #666;">Gocha showing fatigue patterns, Prince has 30% capacity</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="action-priority priority-high">HIGH</span>
+                        <div style="flex: 1;">
+                            <strong>Schedule pair programming: Akash + Gocha on API integration</strong>
+                            <div style="font-size: 11px; color: #666;">Will reduce completion time by est. 1.5 days</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="action-priority priority-medium">MED</span>
+                        <div style="flex: 1;">
+                            <strong>Implement automated testing for payment module</strong>
+                            <div style="font-size: 11px; color: #666;">John spending 6h/day on manual tests that could be automated</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="action-priority priority-medium">MED</span>
+                        <div style="flex: 1;">
+                            <strong>Schedule code review session: Prince to review Saeed's code</strong>
+                            <div style="font-size: 11px; color: #666;">4.1h review time indicates quality issues, needs mentoring</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="action-priority priority-low">LOW</span>
+                        <div style="flex: 1;">
+                            <strong>Plan technical debt sprint for next month</strong>
+                            <div style="font-size: 11px; color: #666;">178 hours of debt accumulated, affecting velocity by 20%</div>
+                        </div>
+                    </li>
+                </ul>
+
+                <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 4px;">
+                    <strong style="color: #2e7d32;">Positive Trends:</strong>
+                    <ul style="margin: 10px 0 0 20px; font-size: 13px; color: #2e7d32;">
+                        <li>Prince's code quality improving: 91% score, up 8%</li>
+                        <li>John's bug detection rate at 95%, preventing production issues</li>
+                        <li>Team collaboration index increased 22% this sprint</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Health Breakdown -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Project-Level Health Matrix</span>
+                <span class="card-badge badge-info">5 Active Projects</span>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: #666;">Project</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Lead</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Progress</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Health</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Tech Debt</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Risk</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Deadline</th>
+                        <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: #666;">Next Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px; font-size: 13px; font-weight: 500;">Payment Gateway Integration</td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Gocha</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <div class="progress-bar" style="width: 80px;">
+                                    <div class="progress-fill" style="width: 65%; background: #ff9800;"></div>
+                                </div>
+                                <span style="font-size: 12px;">65%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="card-badge badge-warning">At Risk</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">32h</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span style="color: #f44336; font-weight: 600;">HIGH</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Apr 15</td>
+                        <td style="padding: 12px; font-size: 12px;">Unblock API dependencies</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px; font-size: 13px; font-weight: 500;">Dashboard Performance</td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Prince</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <div class="progress-bar" style="width: 80px;">
+                                    <div class="progress-fill" style="width: 30%; background: #4caf50;"></div>
+                                </div>
+                                <span style="font-size: 12px;">30%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="card-badge badge-success">Healthy</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">8h</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span style="color: #4caf50; font-weight: 600;">LOW</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Apr 20</td>
+                        <td style="padding: 12px; font-size: 12px;">Continue optimization</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px; font-size: 13px; font-weight: 500;">Customer Support Module</td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Akash</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <div class="progress-bar" style="width: 80px;">
+                                    <div class="progress-fill" style="width: 85%; background: #4caf50;"></div>
+                                </div>
+                                <span style="font-size: 12px;">85%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="card-badge badge-info">Stable</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">45h</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span style="color: #ff9800; font-weight: 600;">MED</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Apr 10</td>
+                        <td style="padding: 12px; font-size: 12px;">Add test coverage</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px; font-size: 13px; font-weight: 500;">API Documentation</td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Saeed</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <div class="progress-bar" style="width: 80px;">
+                                    <div class="progress-fill" style="width: 100%; background: #4caf50;"></div>
+                                </div>
+                                <span style="font-size: 12px;">100%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="card-badge badge-success">Complete</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">2h</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span style="color: #4caf50; font-weight: 600;">NONE</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Done</td>
+                        <td style="padding: 12px; font-size: 12px;">Deploy to production</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 12px; font-size: 13px; font-weight: 500;">Test Automation Suite</td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">John</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <div class="progress-bar" style="width: 80px;">
+                                    <div class="progress-fill" style="width: 40%; background: #ff9800;"></div>
+                                </div>
+                                <span style="font-size: 12px;">40%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="card-badge badge-warning">Delayed</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">18h</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span style="color: #ff9800; font-weight: 600;">MED</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-size: 13px;">Apr 25</td>
+                        <td style="padding: 12px; font-size: 12px;">Need developer support</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        </div><!-- End Real-Time Tab -->
+
+        <!-- Developer Analytics Tab Content -->
+        <div id="developer" class="tab-content" style="display: none;">
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Developer Performance Comparison</span>
+                        <span class="card-badge badge-info">Last 30 Days</span>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: #666;">Developer</th>
+                                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Commits</th>
+                                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Lines Changed</th>
+                                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">PR Approval Rate</th>
+                                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Avg Review Time</th>
+                                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Bug Rate</th>
+                                <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Efficiency Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 500;">Gocha</td>
+                                <td style="padding: 12px; text-align: center;">342</td>
+                                <td style="padding: 12px; text-align: center;">+18,234 / -4,521</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">98%</span></td>
+                                <td style="padding: 12px; text-align: center;">2.1h</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">0.8%</span></td>
+                                <td style="padding: 12px; text-align: center;"><strong style="color: #4caf50;">94/100</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 500;">Prince</td>
+                                <td style="padding: 12px; text-align: center;">285</td>
+                                <td style="padding: 12px; text-align: center;">+14,892 / -3,234</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">95%</span></td>
+                                <td style="padding: 12px; text-align: center;">1.8h</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">1.5%</span></td>
+                                <td style="padding: 12px; text-align: center;"><strong style="color: #4caf50;">91/100</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 500;">Akash</td>
+                                <td style="padding: 12px; text-align: center;">156</td>
+                                <td style="padding: 12px; text-align: center;">+7,234 / -2,156</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">82%</span></td>
+                                <td style="padding: 12px; text-align: center;">3.2h</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">3.2%</span></td>
+                                <td style="padding: 12px; text-align: center;"><strong style="color: #ff9800;">78/100</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 500;">Saeed</td>
+                                <td style="padding: 12px; text-align: center;">134</td>
+                                <td style="padding: 12px; text-align: center;">+5,892 / -1,823</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">78%</span></td>
+                                <td style="padding: 12px; text-align: center;">4.1h</td>
+                                <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">4.1%</span></td>
+                                <td style="padding: 12px; text-align: center;"><strong style="color: #ff9800;">75/100</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Skills Matrix & Growth Areas</span>
+                        <span class="card-badge badge-info">AI-Analyzed</span>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px; margin-bottom: 10px;">
+                            <strong>Gocha - Development Lead</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">Backend Expert</span>
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">API Design</span>
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">System Architecture</span>
+                                <span style="padding: 4px 8px; background: #2196f3; color: white; border-radius: 3px; font-size: 11px;">Microservices</span>
+                                <span style="padding: 4px 8px; background: #ff9800; color: white; border-radius: 3px; font-size: 11px;">📈 Testing (Improving)</span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px; margin-bottom: 10px;">
+                            <strong>Prince - Senior Developer</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">Frontend Expert</span>
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">Performance</span>
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">React</span>
+                                <span style="padding: 4px 8px; background: #2196f3; color: white; border-radius: 3px; font-size: 11px;">Code Review</span>
+                                <span style="padding: 4px 8px; background: #ff9800; color: white; border-radius: 3px; font-size: 11px;">📈 DevOps (Learning)</span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px; margin-bottom: 10px;">
+                            <strong>Akash - Support Developer</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                <span style="padding: 4px 8px; background: #2196f3; color: white; border-radius: 3px; font-size: 11px;">Bug Fixing</span>
+                                <span style="padding: 4px 8px; background: #2196f3; color: white; border-radius: 3px; font-size: 11px;">Customer Support</span>
+                                <span style="padding: 4px 8px; background: #ff9800; color: white; border-radius: 3px; font-size: 11px;">📈 Code Quality (Needs Work)</span>
+                                <span style="padding: 4px 8px; background: #f44336; color: white; border-radius: 3px; font-size: 11px;">⚠️ Testing (Critical Gap)</span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px; margin-bottom: 10px;">
+                            <strong>Saeed - Support Developer</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                <span style="padding: 4px 8px; background: #2196f3; color: white; border-radius: 3px; font-size: 11px;">Documentation</span>
+                                <span style="padding: 4px 8px; background: #2196f3; color: white; border-radius: 3px; font-size: 11px;">Support Tasks</span>
+                                <span style="padding: 4px 8px; background: #ff9800; color: white; border-radius: 3px; font-size: 11px;">📈 Code Review (Improving)</span>
+                                <span style="padding: 4px 8px; background: #f44336; color: white; border-radius: 3px; font-size: 11px;">⚠️ Speed (Needs Help)</span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                            <strong>John - QA</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">Test Design</span>
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">Bug Detection</span>
+                                <span style="padding: 4px 8px; background: #4caf50; color: white; border-radius: 3px; font-size: 11px;">Regression Testing</span>
+                                <span style="padding: 4px 8px; background: #ff9800; color: white; border-radius: 3px; font-size: 11px;">📈 Automation (In Progress)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Collaboration Matrix - Who Helps Whom</span>
+                    <span class="card-badge badge-info">Based on PR Reviews & Pair Programming</span>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 10px; font-size: 12px; font-weight: 600; color: #666;">From/To</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Gocha</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Prince</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Akash</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Saeed</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">John</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px; font-weight: 600;">Gocha</td>
+                            <td style="padding: 12px; text-align: center; background: #f0f0f0;">-</td>
+                            <td style="padding: 12px; text-align: center; background: #e8f5e9;">24 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #e8f5e9;">18 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #fff3e0;">12 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #e3f2fd;">8 fixes</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px; font-weight: 600;">Prince</td>
+                            <td style="padding: 12px; text-align: center; background: #e8f5e9;">15 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #f0f0f0;">-</td>
+                            <td style="padding: 12px; text-align: center; background: #fff3e0;">10 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #ffebee;">5 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #e3f2fd;">6 fixes</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px; font-weight: 600;">Akash</td>
+                            <td style="padding: 12px; text-align: center; background: #ffebee;">2 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #ffebee;">3 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #f0f0f0;">-</td>
+                            <td style="padding: 12px; text-align: center; background: #fff3e0;">8 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #e3f2fd;">15 fixes</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px; font-weight: 600;">Saeed</td>
+                            <td style="padding: 12px; text-align: center; background: #ffebee;">1 review</td>
+                            <td style="padding: 12px; text-align: center; background: #ffebee;">2 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #fff3e0;">6 reviews</td>
+                            <td style="padding: 12px; text-align: center; background: #f0f0f0;">-</td>
+                            <td style="padding: 12px; text-align: center; background: #e3f2fd;">12 fixes</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px; font-weight: 600;">John</td>
+                            <td style="padding: 12px; text-align: center; background: #e8f5e9;">42 bugs</td>
+                            <td style="padding: 12px; text-align: center; background: #e8f5e9;">38 bugs</td>
+                            <td style="padding: 12px; text-align: center; background: #fff3e0;">28 bugs</td>
+                            <td style="padding: 12px; text-align: center; background: #fff3e0;">22 bugs</td>
+                            <td style="padding: 12px; text-align: center; background: #f0f0f0;">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 15px; padding: 15px; background: #fff3e0; border-radius: 4px;">
+                    <strong style="color: #e65100;">⚠️ Knowledge Silo Detected:</strong>
+                    <p style="margin-top: 5px; font-size: 13px;">Akash and Saeed rarely review code from senior developers. Consider pair programming sessions to improve knowledge transfer.</p>
+                </div>
+            </div>
+        </div><!-- End Developer Analytics Tab -->
+
+        <!-- Project Health Tab Content -->
+        <div id="project" class="tab-content" style="display: none;">
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Technical Debt Breakdown</span>
+                        <span class="card-badge badge-warning">178 Hours Total</span>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div style="padding: 12px; background: #ffebee; border-left: 4px solid #f44336; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Authentication Module</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 3px;">Legacy code, security vulnerabilities</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 600; color: #c62828;">45h</div>
+                                    <div style="font-size: 11px; color: #c62828;">CRITICAL</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #fff3e0; border-left: 4px solid #ff9800; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Database Queries</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 3px;">Unoptimized queries causing slowdowns</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 600; color: #e65100;">38h</div>
+                                    <div style="font-size: 11px; color: #e65100;">HIGH</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #fff3e0; border-left: 4px solid #ff9800; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Frontend Components</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 3px;">Duplicate code, needs refactoring</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 600; color: #e65100;">32h</div>
+                                    <div style="font-size: 11px; color: #e65100;">MEDIUM</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #e3f2fd; border-left: 4px solid #2196f3; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Test Coverage</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 3px;">Missing unit tests for critical paths</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 600; color: #1565c0;">28h</div>
+                                    <div style="font-size: 11px; color: #1565c0;">MEDIUM</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #e3f2fd; border-left: 4px solid #2196f3; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Documentation</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 3px;">API docs outdated</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 600; color: #1565c0;">20h</div>
+                                    <div style="font-size: 11px; color: #1565c0;">LOW</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #e8f5e9; border-left: 4px solid #4caf50; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Code Formatting</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 3px;">Inconsistent styling</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 18px; font-weight: 600; color: #2e7d32;">15h</div>
+                                    <div style="font-size: 11px; color: #2e7d32;">LOW</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">System Health Metrics</span>
+                        <span class="card-badge badge-info">Production Environment</span>
+                    </div>
+                    
+                    <div class="code-health-grid" style="margin-top: 15px;">
+                        <div class="health-metric">
+                            <div class="health-metric-title">Uptime (30d)</div>
+                            <div class="health-metric-value">99.87%</div>
+                        </div>
+                        <div class="health-metric">
+                            <div class="health-metric-title">Avg Response Time</div>
+                            <div class="health-metric-value">234ms</div>
+                        </div>
+                        <div class="health-metric">
+                            <div class="health-metric-title">Error Rate</div>
+                            <div class="health-metric-value">0.3%</div>
+                        </div>
+                        <div class="health-metric">
+                            <div class="health-metric-title">Active Users</div>
+                            <div class="health-metric-value">2,847</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <strong style="font-size: 13px;">Deployment History (Last 7 Days)</strong>
+                        <div style="margin-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                <span>v2.3.1 - Production</span>
+                                <span style="color: #4caf50;">✓ Successful</span>
+                                <span>2h ago</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                <span>v2.3.0 - Production</span>
+                                <span style="color: #4caf50;">✓ Successful</span>
+                                <span>1d ago</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                <span>v2.2.9 - Production</span>
+                                <span style="color: #f44336;">✗ Rolled Back</span>
+                                <span>3d ago</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                <span>v2.2.8 - Production</span>
+                                <span style="color: #4caf50;">✓ Successful</span>
+                                <span>5d ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Module-Level Code Quality</span>
+                    <span class="card-badge badge-info">Static Analysis Results</span>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: #666;">Module</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Complexity</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Coverage</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Vulnerabilities</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Duplication</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Health Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Payment Gateway</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">High</span></td>
+                            <td style="padding: 12px; text-align: center;">67%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #f44336; font-weight: 600;">3 Critical</span></td>
+                            <td style="padding: 12px; text-align: center;">12%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #ff9800; font-weight: 600;">C</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">User Dashboard</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">Low</span></td>
+                            <td style="padding: 12px; text-align: center;">89%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #4caf50; font-weight: 600;">0</span></td>
+                            <td style="padding: 12px; text-align: center;">3%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #4caf50; font-weight: 600;">A</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Authentication</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">Medium</span></td>
+                            <td style="padding: 12px; text-align: center;">72%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #ff9800; font-weight: 600;">2 Medium</span></td>
+                            <td style="padding: 12px; text-align: center;">8%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #ff9800; font-weight: 600;">B</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">API Layer</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">Low</span></td>
+                            <td style="padding: 12px; text-align: center;">94%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #4caf50; font-weight: 600;">0</span></td>
+                            <td style="padding: 12px; text-align: center;">2%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #4caf50; font-weight: 600;">A+</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Database Layer</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-critical">Very High</span></td>
+                            <td style="padding: 12px; text-align: center;">58%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #ff9800; font-weight: 600;">1 Medium</span></td>
+                            <td style="padding: 12px; text-align: center;">18%</td>
+                            <td style="padding: 12px; text-align: center;"><span style="color: #f44336; font-weight: 600;">D</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- End Project Health Tab -->
+
+        <!-- AI Predictions Tab Content -->
+        <div id="ai" class="tab-content" style="display: none;">
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Sprint Completion Probability</span>
+                        <span class="card-badge badge-warning">ML Confidence: 87%</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; font-weight: 700; color: #ff9800;">42%</div>
+                            <div style="font-size: 14px; color: #666;">Chance of On-Time Completion</div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <strong style="font-size: 13px;">Risk Factors:</strong>
+                            <ul style="margin: 10px 0; list-style: none;">
+                                <li style="padding: 8px; background: #ffebee; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                    <strong>-25%:</strong> Gocha's API integration blocked by external dependency
+                                </li>
+                                <li style="padding: 8px; background: #ffebee; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                    <strong>-18%:</strong> 5 critical bugs in payment module need immediate attention
+                                </li>
+                                <li style="padding: 8px; background: #fff3e0; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                    <strong>-12%:</strong> Akash and Saeed's velocity 30% below average
+                                </li>
+                                <li style="padding: 8px; background: #e8f5e9; margin-bottom: 5px; border-radius: 4px; font-size: 12px;">
+                                    <strong>+7%:</strong> Prince has 30% free capacity to help
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 4px;">
+                            <strong style="color: #1565c0;">Recommended Actions to Improve:</strong>
+                            <ol style="margin: 10px 0 0 20px; font-size: 12px;">
+                                <li>Immediately escalate API dependency to management</li>
+                                <li>Reassign Prince to help Gocha (increases to 68%)</li>
+                                <li>Postpone 2 low-priority features (increases to 75%)</li>
+                                <li>Add weekend overtime for critical bugs (increases to 82%)</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Developer Performance Predictions</span>
+                        <span class="card-badge badge-info">Next 30 Days</span>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div style="padding: 12px; background: #ffebee; border-left: 4px solid #f44336; margin-bottom: 10px;">
+                            <strong>Gocha - BURNOUT RISK: HIGH</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Current pace unsustainable. Predicted 35% productivity drop by week 3.
+                                <br><strong>Recommendation:</strong> Mandatory 2-day break + reduce workload by 40%
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #e8f5e9; border-left: 4px solid #4caf50; margin-bottom: 10px;">
+                            <strong>Prince - GROWTH TRAJECTORY: EXCELLENT</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Ready for team lead responsibilities. Performance improving 8% month-over-month.
+                                <br><strong>Recommendation:</strong> Assign as deputy lead for next major feature
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #fff3e0; border-left: 4px solid #ff9800; margin-bottom: 10px;">
+                            <strong>Akash - SKILL PLATEAU DETECTED</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Same error patterns repeating. Needs structured mentoring program.
+                                <br><strong>Recommendation:</strong> Pair with Prince 2h/day for 2 weeks
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #fff3e0; border-left: 4px solid #ff9800; margin-bottom: 10px;">
+                            <strong>Saeed - IMPROVEMENT POTENTIAL: HIGH</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Shows 15% improvement trend. With guidance, could reach mid-level in 3 months.
+                                <br><strong>Recommendation:</strong> Enroll in advanced JavaScript course + code reviews
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 12px; background: #e3f2fd; border-left: 4px solid #2196f3; margin-bottom: 10px;">
+                            <strong>John - CAPACITY ISSUE</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Manual testing consuming 80% time. Automation could free 5h/day.
+                                <br><strong>Recommendation:</strong> Hire QA automation engineer or train John
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Feature Delivery Predictions</span>
+                    <span class="card-badge badge-info">Based on Historical Velocity</span>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: #666;">Feature</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Assigned To</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Est. Points</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Predicted Date</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Confidence</th>
+                            <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #666;">Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Payment Gateway v2</td>
+                            <td style="padding: 12px; text-align: center;">Gocha</td>
+                            <td style="padding: 12px; text-align: center;">21</td>
+                            <td style="padding: 12px; text-align: center;">Apr 18 (+3 days)</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-warning">65%</span></td>
+                            <td style="padding: 12px; text-align: center;">External API delay</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Dashboard Optimization</td>
+                            <td style="padding: 12px; text-align: center;">Prince</td>
+                            <td style="padding: 12px; text-align: center;">13</td>
+                            <td style="padding: 12px; text-align: center;">Apr 14 (on track)</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">92%</span></td>
+                            <td style="padding: 12px; text-align: center;">Low</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Customer Portal Fix</td>
+                            <td style="padding: 12px; text-align: center;">Akash</td>
+                            <td style="padding: 12px; text-align: center;">8</td>
+                            <td style="padding: 12px; text-align: center;">Apr 12 (-1 day)</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-info">78%</span></td>
+                            <td style="padding: 12px; text-align: center;">Testing delays</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">API Documentation</td>
+                            <td style="padding: 12px; text-align: center;">Saeed</td>
+                            <td style="padding: 12px; text-align: center;">5</td>
+                            <td style="padding: 12px; text-align: center;">Completed</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-success">100%</span></td>
+                            <td style="padding: 12px; text-align: center;">None</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px;">Test Automation</td>
+                            <td style="padding: 12px; text-align: center;">John</td>
+                            <td style="padding: 12px; text-align: center;">34</td>
+                            <td style="padding: 12px; text-align: center;">May 2 (+7 days)</td>
+                            <td style="padding: 12px; text-align: center;"><span class="card-badge badge-critical">45%</span></td>
+                            <td style="padding: 12px; text-align: center;">Needs dev support</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>AI Recommendation:</strong> Swap Akash and Prince assignments after Apr 14. Prince's speed will recover 5 days of delay on critical path features.
+                </div>
+            </div>
+        </div><!-- End AI Predictions Tab -->
+
+        <!-- Historical Trends Tab Content -->
+        <div id="historical" class="tab-content" style="display: none;">
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">6-Month Velocity Trend</span>
+                        <span class="card-badge badge-info">Story Points per Sprint</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="height: 200px; display: flex; align-items: flex-end; justify-content: space-around; border-left: 2px solid #ddd; border-bottom: 2px solid #ddd; padding: 10px;">
+                            <div style="flex: 1; margin: 0 2px;">
+                                <div style="background: #4caf50; height: 140px; position: relative;">
+                                    <span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600;">52</span>
+                                    <span style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px;">Oct</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; margin: 0 2px;">
+                                <div style="background: #4caf50; height: 150px; position: relative;">
+                                    <span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600;">55</span>
+                                    <span style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px;">Nov</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; margin: 0 2px;">
+                                <div style="background: #66bb6a; height: 135px; position: relative;">
+                                    <span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600;">48</span>
+                                    <span style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px;">Dec</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; margin: 0 2px;">
+                                <div style="background: #4caf50; height: 160px; position: relative;">
+                                    <span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600;">58</span>
+                                    <span style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px;">Jan</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; margin: 0 2px;">
+                                <div style="background: #4caf50; height: 170px; position: relative;">
+                                    <span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600;">62</span>
+                                    <span style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px;">Feb</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; margin: 0 2px;">
+                                <div style="background: #ff9800; height: 130px; position: relative;">
+                                    <span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600;">47</span>
+                                    <span style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px;">Mar</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px; padding: 15px; background: #fff3e0; border-radius: 4px;">
+                            <strong style="color: #e65100;">Pattern Detected:</strong> March velocity dropped 24% - correlates with Gocha's increased workload and absence of Prince (vacation).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Bug Trends & Quality Metrics</span>
+                        <span class="card-badge badge-warning">Rising Trend</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 8px; font-size: 12px; color: #666;">Month</th>
+                                    <th style="padding: 8px; text-align: center; font-size: 12px; color: #666;">Bugs Found</th>
+                                    <th style="padding: 8px; text-align: center; font-size: 12px; color: #666;">Escaped to Prod</th>
+                                    <th style="padding: 8px; text-align: center; font-size: 12px; color: #666;">Avg Fix Time</th>
+                                    <th style="padding: 8px; text-align: center; font-size: 12px; color: #666;">Severity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px; font-size: 12px;">October</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">42</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;"><span style="color: #4caf50;">2</span></td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">2.3 days</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="card-badge badge-success">Low</span></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px; font-size: 12px;">November</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">38</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;"><span style="color: #4caf50;">1</span></td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">2.1 days</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="card-badge badge-success">Low</span></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px; font-size: 12px;">December</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">45</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;"><span style="color: #ff9800;">4</span></td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">2.8 days</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="card-badge badge-warning">Medium</span></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px; font-size: 12px;">January</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">51</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;"><span style="color: #ff9800;">5</span></td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">3.1 days</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="card-badge badge-warning">Medium</span></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px; font-size: 12px;">February</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">58</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;"><span style="color: #f44336;">8</span></td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;">3.5 days</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="card-badge badge-critical">High</span></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0; background: #ffebee;">
+                                    <td style="padding: 8px; font-size: 12px; font-weight: 600;">March</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: 600;">67</td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px;"><span style="color: #f44336; font-weight: 600;">12</span></td>
+                                    <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: 600;">4.2 days</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="card-badge badge-critical">Critical</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 15px; padding: 12px; background: #ffebee; border-radius: 4px;">
+                            <strong style="color: #c62828;">⚠️ Alert:</strong> Bug escape rate increased 500% in 6 months. Correlation with reduced test coverage (92% → 78%) and Akash/Saeed joining team.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Individual Developer Evolution</span>
+                    <span class="card-badge badge-info">Performance Over Time</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 20px;">
+                    <div style="text-align: center;">
+                        <strong style="font-size: 13px;">Gocha</strong>
+                        <div style="margin-top: 10px;">
+                            <div style="font-size: 10px; color: #666;">6 months ago</div>
+                            <div style="font-size: 20px; font-weight: 600;">85</div>
+                        </div>
+                        <div style="margin: 10px 0; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 24px;">→</span>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #666;">Now</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #4caf50;">94</div>
+                        </div>
+                        <div style="font-size: 11px; color: #4caf50; margin-top: 5px;">+10.6%</div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <strong style="font-size: 13px;">Prince</strong>
+                        <div style="margin-top: 10px;">
+                            <div style="font-size: 10px; color: #666;">6 months ago</div>
+                            <div style="font-size: 20px; font-weight: 600;">78</div>
+                        </div>
+                        <div style="margin: 10px 0; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 24px;">→</span>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #666;">Now</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #4caf50;">91</div>
+                        </div>
+                        <div style="font-size: 11px; color: #4caf50; margin-top: 5px;">+16.7%</div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <strong style="font-size: 13px;">Akash</strong>
+                        <div style="margin-top: 10px;">
+                            <div style="font-size: 10px; color: #666;">3 months ago</div>
+                            <div style="font-size: 20px; font-weight: 600;">65</div>
+                        </div>
+                        <div style="margin: 10px 0; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 24px;">→</span>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #666;">Now</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #ff9800;">78</div>
+                        </div>
+                        <div style="font-size: 11px; color: #4caf50; margin-top: 5px;">+20%</div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <strong style="font-size: 13px;">Saeed</strong>
+                        <div style="margin-top: 10px;">
+                            <div style="font-size: 10px; color: #666;">3 months ago</div>
+                            <div style="font-size: 20px; font-weight: 600;">62</div>
+                        </div>
+                        <div style="margin: 10px 0; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 24px;">→</span>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #666;">Now</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #ff9800;">75</div>
+                        </div>
+                        <div style="font-size: 11px; color: #4caf50; margin-top: 5px;">+21%</div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <strong style="font-size: 13px;">John</strong>
+                        <div style="margin-top: 10px;">
+                            <div style="font-size: 10px; color: #666;">6 months ago</div>
+                            <div style="font-size: 20px; font-weight: 600;">88</div>
+                        </div>
+                        <div style="margin: 10px 0; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 24px;">→</span>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #666;">Now</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #f44336;">85</div>
+                        </div>
+                        <div style="font-size: 11px; color: #f44336; margin-top: 5px;">-3.4%</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 4px;">
+                    <strong style="color: #1565c0;">Key Insights:</strong>
+                    <ul style="margin: 10px 0 0 20px; font-size: 12px;">
+                        <li>Prince shows highest growth rate - ready for more responsibilities</li>
+                        <li>Akash and Saeed improving but still below team average</li>
+                        <li>John's performance declining due to increased manual testing workload</li>
+                        <li>Gocha maintaining excellence but showing signs of fatigue in recent weeks</li>
+                    </ul>
+                </div>
+            </div>
+        </div><!-- End Historical Trends Tab -->
+    </div>
+</body>
+</html>
